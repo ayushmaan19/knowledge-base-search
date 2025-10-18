@@ -1,5 +1,3 @@
-// Clear/reset all stored documents and embeddings
-// List available chat providers and models
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -22,13 +20,9 @@ const DOCS_PATH = "./documents.json";
 const EMBEDDINGS_PATH = "./embeddings.json";
 app.post("/clear", async (req, res) => {
   try {
-    // Overwrite documents.json and embeddings.json with empty arrays
     await fs.writeFile(DOCS_PATH, JSON.stringify([]));
     await fs.writeFile(EMBEDDINGS_PATH, JSON.stringify([]));
 
-    // Optionally, clear ChromaDB (if running)
-    // Use the same collection id used elsewhere: "knowledge-base".
-    // Try multiple REST paths for compatibility.
     const deleteCandidates = [
       "http://localhost:8000/collections/knowledge-base",
       "http://localhost:8000/api/v1/collections/knowledge-base",
@@ -77,7 +71,7 @@ const geminiApiKey = process.env.GEMINI_API_KEY;
 const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 
 // ---- Groq model discovery and fallback ----
-let cachedGroqModels = null; // cache list of available model ids
+let cachedGroqModels = null; 
 async function fetchGroqModelsSafe() {
   if (!process.env.GROQ_API_KEY) return [];
   try {
@@ -107,7 +101,6 @@ async function pickGroqModel(preferredOrder = []) {
       const match = list.find((id) => id.includes(name));
       if (match) return match;
     }
-    // Otherwise, pick the first llama or mixtral, else first available
     const llama = list.find((id) => id.toLowerCase().includes("llama"));
     if (llama) return llama;
     const mixtral = list.find((id) => id.toLowerCase().includes("mixtral"));
@@ -118,7 +111,6 @@ async function pickGroqModel(preferredOrder = []) {
   return "mixtral-8x7b-32768";
 }
 
-// ---- Provider-specific chat helpers ----
 async function generateWithGroq({ system, user }) {
   let model =
     process.env.GROQ_MODEL ||
@@ -163,9 +155,7 @@ async function generateWithGemini({ system, user }) {
   return { text, model: modelId };
 }
 
-// Unified answer generator with fallback: Groq -> Gemini
 async function generateAnswerWithFallback({ system, user }) {
-  // Try Groq first if configured
   if (groq) {
     try {
       const out = await generateWithGroq({ system, user });
@@ -174,7 +164,6 @@ async function generateAnswerWithFallback({ system, user }) {
       console.warn("Groq generation failed, will try Gemini:", e?.message || e);
     }
   }
-  // Then try Gemini
   if (genAI) {
     const out = await generateWithGemini({ system, user });
     if (out.text) return { ...out, provider: "gemini" };
