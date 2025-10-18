@@ -85,9 +85,11 @@ npm install @langchain/community @langchain/openai langchain
 
 Create a .env file in the project root:
 ```bash
-OPENAI_API_KEY=your_openai_api_key
-GEMINI_API_KEY=your_gemini_key
-GROQ_API_KEY=your_groq_key
+GROQ_API_KEY="your-groq-api-key-here"
+HUGGINGFACE_API_KEY="your-huggingface-api-key-here"
+GROQ_MODEL="llama3-70b-8192"
+XENOVA_MODEL="Xenova/all-MiniLM-L6-v2"
+GEMINI_API_KEY="your-gemini-api-key-here"
 ```
 ### 4. Start Backend (Port 5001)
 ```bash
