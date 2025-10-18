@@ -114,7 +114,7 @@ Enter your question in the input box
 ### User: “Summarize the main topics across all uploaded documents.”
 ### AI: “The files primarily discuss vector embeddings using ChromaDB, hybrid AI inference with HuggingFace and Gemini APIs, and document-based retrieval using LangChain.”
 ---
-
+# 🔍 Scope
 🧭 Future Improvements
 
 🧱 Persistent ChromaDB storage
