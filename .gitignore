@@ -12,4 +12,4 @@ dist-ssr/
 # Editor
 .vscode/
 .idea/
-*.log
+*.log.DS_Store
