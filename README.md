@@ -73,7 +73,7 @@ knowledge-base-engine/
 ### 🔧 1. Clone or Download
 
 ```bash
-git clone https://github.com/yourusername/knowledge-base-engine.git
+git clone https://github.com/ayushmaan19/knowledge-base-engine.git
 cd knowledge-base-engine
 ```
 ### 📦 2. Install Backend Dependencies
