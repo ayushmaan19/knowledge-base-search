@@ -130,5 +130,5 @@ Enter your question in the input box
 # 👨‍💻 Author
 
 ## Ayushmaan kumar Yadav<br>
-🎓 CSE Undergraduate | 💪 Fitness & Tech Enthusiast<br>
+🎓 CSE Undergraduate | Tech Enthusiast<br>
 🔗 [GitHub](https://github.com/ayushmaan19)
