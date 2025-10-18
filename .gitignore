@@ -1,0 +1,15 @@
+# Global ignores
+.DS_Store
+node_modules/
+dist/
+dist-ssr/
+
+# Env files
+.env
+.env.*
+*.env
+
+# Editor
+.vscode/
+.idea/
+*.log
