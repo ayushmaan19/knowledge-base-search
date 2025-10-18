@@ -3,7 +3,7 @@
 
 ---
 
-## 📂 [🔗 Video preview Google Drive)]([YOUR_DRIVE_LINK_HERE](https://drive.google.com/file/d/1gloxDU0pR4lwZYvpl3cN4h_HwkgNWJn3/view?usp=sharing))
+## 📂 [🔗 Video preview Google Drive)](https://drive.google.com/file/d/1gloxDU0pR4lwZYvpl3cN4h_HwkgNWJn3/view?usp=sharing)
 Easily download the entire source code directly from Google Drive.
 
 ---
