@@ -204,105 +204,128 @@ async function embedTexts(texts) {
   const modelId =
     process.env.HF_EMBEDDING_MODEL || "sentence-transformers/all-MiniLM-L6-v2";
   const start = Date.now();
-  if (hf) {
-    const HF_TIMEOUT_MS = parseInt(process.env.HF_TIMEOUT_MS || "5000", 10);
-    const calls = texts.map(async (t) => {
-      try {
-        const hfPromise = hf.featureExtraction({ model: modelId, inputs: t });
-        const res = await Promise.race([
-          hfPromise,
-          new Promise((_, reject) =>
-            setTimeout(
-              () => reject(new Error("HF embed timeout")),
-              HF_TIMEOUT_MS
-            )
-          ),
-        ]);
-        const vecLike = Array.isArray(res?.[0]) ? res[0] : res;
-        const vec = Array.from(vecLike || []);
-        const key = t.slice(0, 200);
-        embeddingCache.set(key, vec);
-        if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
-          const firstKey = embeddingCache.keys().next().value;
-          embeddingCache.delete(firstKey);
+  const BATCH_SIZE = parseInt(process.env.EMBEDDING_BATCH_SIZE || "10", 10);
+
+  async function embedBatch(batch) {
+    if (hf) {
+      const HF_TIMEOUT_MS = parseInt(process.env.HF_TIMEOUT_MS || "5000", 10);
+      const calls = batch.map(async (t) => {
+        try {
+          const hfPromise = hf.featureExtraction({ model: modelId, inputs: t });
+          const res = await Promise.race([
+            hfPromise,
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("HF embed timeout")),
+                HF_TIMEOUT_MS
+              )
+            ),
+          ]);
+          const vecLike = Array.isArray(res?.[0]) ? res[0] : res;
+          const vec = Array.from(vecLike || []);
+          const key = t.slice(0, 200);
+          embeddingCache.set(key, vec);
+          if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
+            const firstKey = embeddingCache.keys().next().value;
+            embeddingCache.delete(firstKey);
+          }
+          return vec;
+        } catch (e) {
+          console.warn(
+            "HF embedding failed or timed out, falling back to local:",
+            e?.message || e
+          );
+          return null;
         }
-        return vec;
-      } catch (e) {
-        console.warn(
-          "HF embedding failed or timed out, falling back to local:",
-          e?.message || e
-        );
+      });
+      let results = await Promise.all(calls);
+
+      // Fallback to local for any that failed
+      for (let i = 0; i < results.length; i++) {
+        if (results[i] === null) {
+          const t = batch[i];
+          if (!localEmbedderReady) {
+            localEmbedderReady = (async () => {
+              const xenovaModel =
+                process.env.XENOVA_EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
+              localEmbedder = await pipeline(
+                "feature-extraction",
+                xenovaModel,
+                {
+                  quantized: true,
+                }
+              );
+              return true;
+            })();
+          }
+          await localEmbedderReady;
+          const key = t.slice(0, 200);
+          if (embeddingCache.has(key)) {
+            const val = embeddingCache.get(key);
+            embeddingCache.delete(key);
+            embeddingCache.set(key, val);
+            results[i] = val;
+          } else {
+            const resLocal = await localEmbedder(t, {
+              pooling: "mean",
+              normalize: true,
+            });
+            const vecLocal = Array.from(resLocal.data || []);
+            embeddingCache.set(key, vecLocal);
+            if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
+              const firstKey = embeddingCache.keys().next().value;
+              embeddingCache.delete(firstKey);
+            }
+            results[i] = vecLocal;
+          }
+        }
       }
-      if (!localEmbedderReady) {
-        localEmbedderReady = (async () => {
-          const xenovaModel =
-            process.env.XENOVA_EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
-          localEmbedder = await pipeline("feature-extraction", xenovaModel, {
-            quantized: true,
-          });
-          return true;
-        })();
-      }
-      await localEmbedderReady;
-      if (embeddingCache.has(t.slice(0, 200))) {
-        const val = embeddingCache.get(t.slice(0, 200));
-        embeddingCache.delete(t.slice(0, 200));
-        embeddingCache.set(t.slice(0, 200), val);
+      return results;
+    }
+
+    if (!localEmbedderReady) {
+      localEmbedderReady = (async () => {
+        const xenovaModel =
+          process.env.XENOVA_EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
+        localEmbedder = await pipeline("feature-extraction", xenovaModel, {
+          quantized: true,
+        });
+        return true;
+      })();
+    }
+    await localEmbedderReady;
+
+    const tasks = batch.map(async (t) => {
+      const key = t.slice(0, 200);
+      if (embeddingCache.has(key)) {
+        const val = embeddingCache.get(key);
+        embeddingCache.delete(key);
+        embeddingCache.set(key, val);
         return val;
       }
-      const resLocal = await localEmbedder(t, {
-        pooling: "mean",
-        normalize: true,
-      });
-      const vecLocal = Array.from(resLocal.data || []);
-      embeddingCache.set(t.slice(0, 200), vecLocal);
+      const res = await localEmbedder(t, { pooling: "mean", normalize: true });
+      const vec = Array.from(res.data || []);
+      embeddingCache.set(key, vec);
       if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
         const firstKey = embeddingCache.keys().next().value;
         embeddingCache.delete(firstKey);
       }
-      return vecLocal;
+      return vec;
     });
-    const out = await Promise.all(calls);
-    console.log(
-      `ℹ️ embedTexts (HF path) processed ${texts.length} texts in ${
-        Date.now() - start
-      }ms`
-    );
-    return out;
-  }
-  if (!localEmbedderReady) {
-    // Kick off initialization now so we don't block for long on first request.
-    localEmbedderReady = (async () => {
-      const xenovaModel =
-        process.env.XENOVA_EMBEDDING_MODEL || "Xenova/all-MiniLM-L6-v2";
-      localEmbedder = await pipeline("feature-extraction", xenovaModel, {
-        quantized: true,
-      });
-      return true;
-    })();
+    return Promise.all(tasks);
   }
 
-  await localEmbedderReady;
+  const results = [];
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE);
+    const batchResults = await embedBatch(batch);
+    results.push(...batchResults);
+  }
 
-  const tasks = texts.map(async (t) => {
-    const key = t.slice(0, 200);
-    if (embeddingCache.has(key)) {
-      const val = embeddingCache.get(key);
-      embeddingCache.delete(key);
-      embeddingCache.set(key, val);
-      return val;
-    }
-    const res = await localEmbedder(t, { pooling: "mean", normalize: true });
-    const vec = Array.from(res.data || []);
-    embeddingCache.set(key, vec);
-    if (embeddingCache.size > EMBEDDING_CACHE_MAX) {
-      const firstKey = embeddingCache.keys().next().value;
-      embeddingCache.delete(firstKey);
-    }
-    return vec;
-  });
-  const outputs = await Promise.all(tasks);
-  return outputs;
+  console.log(
+    `ℹ️ embedTexts processed ${texts.length} texts in ${Date.now() - start}ms`
+  );
+  return results;
 }
 
 app.post("/upload", upload.array("files"), async (req, res) => {

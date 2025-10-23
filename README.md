@@ -3,7 +3,7 @@
 
 ---
 
-## 📂 [🔗 Video preview Google Drive)](https://drive.google.com/file/d/1gloxDU0pR4lwZYvpl3cN4h_HwkgNWJn3/view?usp=sharing)
+## 📂 [🔗 Video preview Google Drive](https://drive.google.com/file/d/1EZNnSFYcnegtsatZ0YaqTWCcEhm4rnL0/view?usp=drive_link)
 
 ---
 
