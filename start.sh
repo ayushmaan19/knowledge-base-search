@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Startup script for Knowledge Base Search Engine
-# Clears ChromaDB and starts both backend and frontend services
+
 
 set -e
 
@@ -58,13 +57,7 @@ if ! curl -s http://127.0.0.1:5001/health > /dev/null; then
 fi
 echo "✅ Backend running (PID: $BACKEND_PID)"
 
-# Start Frontend (optional - uncomment if you want)
-# echo "🔄 Starting Frontend..."
-# cd "$PROJECT_ROOT/frontend"
-# npm run dev > /tmp/frontend.log 2>&1 &
-# FRONTEND_PID=$!
-# sleep 3
-# echo "✅ Frontend running (PID: $FRONTEND_PID)"
+
 
 echo ""
 echo "✨ All services started successfully!"
@@ -81,5 +74,4 @@ echo "💡 To stop services, run: pkill -f 'node.*server.js' && pkill -f 'uvicor
 echo "💡 To view logs: tail -f /tmp/backend.log  or  tail -f /tmp/chroma.log"
 echo ""
 
-# Keep script running (optional - remove 'wait' if you want it to exit)
 wait
