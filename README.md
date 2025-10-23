@@ -3,8 +3,7 @@
 
 ---
 
-## 📂 [🔗 Video preview Google Drive)]([YOUR_DRIVE_LINK_HERE](https://drive.google.com/file/d/1gloxDU0pR4lwZYvpl3cN4h_HwkgNWJn3/view?usp=sharing))
-Easily download the entire source code directly from Google Drive.
+## 📂 [🔗 Video preview Google Drive)](https://drive.google.com/file/d/1gloxDU0pR4lwZYvpl3cN4h_HwkgNWJn3/view?usp=sharing)
 
 ---
 
@@ -86,9 +85,11 @@ npm install @langchain/community @langchain/openai langchain
 
 Create a .env file in the project root:
 ```bash
-OPENAI_API_KEY=your_openai_api_key
-GEMINI_API_KEY=your_gemini_key
-GROQ_API_KEY=your_groq_key
+GROQ_API_KEY="your-groq-api-key-here"
+HUGGINGFACE_API_KEY="your-huggingface-api-key-here"
+GROQ_MODEL="llama3-70b-8192"
+XENOVA_MODEL="Xenova/all-MiniLM-L6-v2"
+GEMINI_API_KEY="your-gemini-api-key-here"
 ```
 ### 4. Start Backend (Port 5001)
 ```bash
@@ -113,7 +114,7 @@ Enter your question in the input box
 ### User: “Summarize the main topics across all uploaded documents.”
 ### AI: “The files primarily discuss vector embeddings using ChromaDB, hybrid AI inference with HuggingFace and Gemini APIs, and document-based retrieval using LangChain.”
 ---
-
+# 🔍 Scope
 🧭 Future Improvements
 
 🧱 Persistent ChromaDB storage
@@ -129,5 +130,5 @@ Enter your question in the input box
 # 👨‍💻 Author
 
 ## Ayushmaan kumar Yadav<br>
-🎓 CSE Undergraduate | 💪 Fitness & Tech Enthusiast<br>
+🎓 CSE Undergraduate | Tech Enthusiast<br>
 🔗 [GitHub](https://github.com/ayushmaan19)
